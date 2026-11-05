@@ -1,0 +1,19 @@
+# Compiled firmware files
+*.bin
+*.elf
+*.hex
+*.map
+*.o
+*.a
+
+# Build directories
+build/
+.pio/
+
+# Local environment files
+.env
+.env.*
+
+# Windows files
+Thumbs.db
+.DS_Store
