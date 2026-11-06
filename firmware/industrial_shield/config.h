@@ -19,9 +19,7 @@ const uint8_t RELAY_PIN = 26;
 const uint8_t BUZZER_PIN = 25;
 
 // Status LEDs
-const uint8_t LED_SAFE = 16;
-const uint8_t LED_WARNING = 17;
-
+const uint8_t LED_STATUS = 16;
 // LCD connections
 const uint8_t LCD_RS = 13;
 const uint8_t LCD_EN = 14;
