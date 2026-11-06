@@ -24,13 +24,13 @@ static bool ledState = false;
 static bool buzzerState = false;
 
 inline void setupEmergencyResponse() {
-    pinMode(LED_SAFE, OUTPUT);
-    pinMode(LED_WARNING, OUTPUT);
+    pinMode(LED_STATUS, OUTPUT);
+    pinMode(LED_STATUS, OUTPUT);
     pinMode(BUZZER_PIN, OUTPUT);
     pinMode(RELAY_PIN, OUTPUT);
 
-    digitalWrite(LED_SAFE, HIGH);
-    digitalWrite(LED_WARNING, LOW);
+    digitalWrite(LED_STATUS, HIGH);
+    digitalWrite(LED_STATUS LOW);
     digitalWrite(BUZZER_PIN, LOW);
     digitalWrite(RELAY_PIN, RELAY_SAFE_LEVEL);
 
@@ -56,8 +56,8 @@ inline bool resetEmergencyResponse(RiskLevel currentRisk) {
     ledState = false;
 
     digitalWrite(BUZZER_PIN, LOW);
-    digitalWrite(LED_WARNING, LOW);
-    digitalWrite(LED_SAFE, HIGH);
+    digitalWrite(LED_STATUS, LOW);
+    digitalWrite(LED_STATUS, HIGH);
     digitalWrite(RELAY_PIN, RELAY_SAFE_LEVEL);
 
     Serial.println("Emergency System Reset");
