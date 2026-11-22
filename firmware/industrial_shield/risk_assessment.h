@@ -6,21 +6,19 @@
 enum RiskLevel {
     SAFE,
     WARNING,
-    DANGER,
     CRITICAL
 };
 
 RiskLevel calculateRisk(const SensorData& data) {
+    if (data.temperature <= -100) {
+        return WARNING;
+    }
 
-    if (data.temperature >= 70 || data.gasLevel >= 800) {
+    if (data.temperature >= 70 || data.gasLevel >= 2500) {
         return CRITICAL;
     }
 
-    if (data.temperature >= 60 || data.gasLevel >= 600) {
-        return DANGER;
-    }
-
-    if (data.temperature >= 45 || data.gasLevel >= 400) {
+    if (data.temperature >= 55 || data.gasLevel >= 1500) {
         return WARNING;
     }
 
@@ -28,11 +26,9 @@ RiskLevel calculateRisk(const SensorData& data) {
 }
 
 const char* getRiskLabel(RiskLevel level) {
-
     switch (level) {
         case SAFE: return "SAFE";
         case WARNING: return "WARNING";
-        case DANGER: return "DANGER";
         case CRITICAL: return "CRITICAL";
         default: return "UNKNOWN";
     }

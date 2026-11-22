@@ -1,46 +1,122 @@
 
-#include "config.h"
-#include "risk_assessment.h"
 #include <Arduino.h>
+
+#include "config.h"
+#include "sensor_data.h"
+#include "temperature_sensor.h"
+#include "gas_sensor.h"
+#include "power_monitor.h"
+#include "risk_assessment.h"
+#include "emergency_response.h"
+#include "lcd_display.h"
+#include "wifi_manager.h"
+#include "backend_client.h"
+
+bool inaAvailable = false;
+
+unsigned long lastReadingTime = 0;
+unsigned long lastBackendTime = 0;
+
+SensorData readings;
 
 void setup() {
     Serial.begin(115200);
 
+    Serial.println();
     Serial.println("================================");
     Serial.println("       INDUSTRIAL SHIELD");
     Serial.println("================================");
-    Serial.println("System Initializing...");
-    Serial.println("ESP32 Ready.");
+
+    initTemperatureSensor();
+    initGasSensor();
+    setupEmergencyResponse();
+    initLCD();
+
+    inaAvailable = initPowerMonitor();
+
+    Serial.print("INA219: ");
+    Serial.println(inaAvailable ? "Connected" : "Not detected");
+
+    connectWiFi();
+
+    Serial.println("Initialization complete");
 }
 
 void loop() {
-    SensorData readings = getSimulatedSensorData();
+    unsigned long now = millis();
 
-    RiskLevel risk = calculateRisk(readings);
+    if (now - lastReadingTime >= 1000) {
+        lastReadingTime = now;
 
-    Serial.println("-------------------------------");
+        readings.temperature = readTemperature();
+        readings.gasLevel = readGasLevel();
 
-    Serial.print("Temperature: ");
-    Serial.print(readings.temperature);
-    Serial.println(" C");
+        readings.voltage = 0;
+        readings.current = 0;
+        readings.power = 0;
 
-    Serial.print("Gas Level: ");
-    Serial.println(readings.gasLevel);
+        if (inaAvailable) {
+            readings.voltage = readBusVoltage();
+            readings.current = readCurrent();
+            readings.power = readPower();
+        }
 
-    Serial.print("Voltage: ");
-    Serial.print(readings.voltage);
-    Serial.println(" V");
+        RiskLevel risk = calculateRisk(readings);
 
-    Serial.print("Current: ");
-    Serial.print(readings.current);
-    Serial.println(" A");
+        updateEmergencyResponse(risk);
 
-    Serial.print("Power: ");
-    Serial.print(readings.power);
-    Serial.println(" W");
+        updateLCD(
+            readings.temperature,
+            readings.gasLevel,
+            risk
+        );
 
-    Serial.print("Risk Status: ");
-    Serial.println(getRiskLabel(risk));
+        Serial.println("------------------------------");
 
-    delay(2000);
+        Serial.print("Temperature: ");
+        Serial.println(readings.temperature);
+
+        Serial.print("Gas: ");
+        Serial.println(readings.gasLevel);
+
+        if (inaAvailable) {
+            Serial.print("Voltage: ");
+            Serial.println(readings.voltage);
+
+            Serial.print("Current: ");
+            Serial.println(readings.current);
+
+            Serial.print("Power: ");
+            Serial.println(readings.power);
+        }
+
+        Serial.print("Risk: ");
+        Serial.println(getRiskLabel(risk));
+
+        Serial.println("------------------------------");
+    }
+
+    if (now - lastBackendTime >= 2000) {
+        lastBackendTime = now;
+
+        // Backend model rejects the -999 sensor-disconnected
+        // value, so do not submit invalid temperature readings.
+        if (readings.temperature > -100) {
+            bool buzzerOn =
+                digitalRead(BUZZER_PIN) == HIGH;
+
+            sendSensorData(
+                readings.gasLevel,
+                readings.temperature,
+                false,
+                buzzerOn
+            );
+        } else {
+            Serial.println(
+                "Backend skipped: temperature sensor error"
+            );
+        }
+    }
+
+    delay(10);
 }
