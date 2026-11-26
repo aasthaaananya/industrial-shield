@@ -1,5 +1,33 @@
+
+# Python environment and cache
 .venv/
 __pycache__/
 *.pyc
+
+# Database files
 *.db
+
+# Environment variables and secrets
 .env
+.env.*
+secrets.h
+
+# Compiled firmware files
+*.bin
+*.elf
+*.hex
+*.map
+*.o
+*.a
+
+# Build directories
+build/
+.pio/
+
+# Arduino build output
+*.ino.bootloader.bin
+*.ino.partitions.bin
+
+# Operating system files
+Thumbs.db
+.DS_Store
